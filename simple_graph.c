@@ -15,9 +15,7 @@ GraphNode * grh_create_node(char *name) {
     GraphNode *node;
     node = (GraphNode *) malloc(sizeof(GraphNode));
     if(node != NULL ) {
-        node->name = malloc(strlen(name) + 1);
         strcpy(node->name, name);
-
         node->neighbors = ol_create();
     }
     return node;
@@ -25,14 +23,13 @@ GraphNode * grh_create_node(char *name) {
 
 /// deletes given node including struct and its fields
 void grh_delete_node(GraphNode *node) {
-    free(node->name);
     Iter *iterator = ol_iterator(node->neighbors);
     while(ol_has_next(iterator)) {
         free(ol_next(iterator));
     }
-    free(ol_next(iterator));
     ol_destroy(node->neighbors);
     free(node);
+    free(iterator);
 }
 
 /// deletes the given graph
@@ -41,8 +38,8 @@ void grd_delete_graph(ObjectList *graph) {
     while(ol_has_next(iterator)) {
         grh_delete_node(ol_next(iterator));
     }
-    grh_delete_node(ol_next(iterator));
-
+    ol_destroy(graph);
+    free(iterator);
 }
 
 /// Given an objectlist, returns the node with the given name or NULL
@@ -52,11 +49,13 @@ GraphNode * grh_find_node_by_name(ObjectList *graph, char *name) {
     node = (GraphNode *) malloc(sizeof(GraphNode));
     Iter *iterator = ol_iterator(graph);
     for(int i = 0; i < size; i++) {
-        node = ol_next(iterator);
+        node = (GraphNode *)ol_next(iterator);
         if(strcmp(node->name, name) == 0) {
+            free(iterator);
             return node;
         }
     }
+    free(iterator);
     return NULL;
 }
 
@@ -70,7 +69,7 @@ void grh_print_graph(ObjectList *graph) {
     
     //for each node in the graph
     for(int i = 0; i < size; i++) {
-        node = ol_next(iterator);
+        node = (GraphNode *) ol_next(iterator);
         printf("%s:", node->name);
         
         //if node has neighbors
@@ -85,12 +84,12 @@ void grh_print_graph(ObjectList *graph) {
             for(int j = 0; j < ol_get_size(node->neighbors); j++) {
                 //add comma at the end if there is another neighbor
                 if(ol_has_next(neigh_iter)) {
-                    neigh = ol_next(neigh_iter);
+                    neigh = (char *) ol_next(neigh_iter);
                     printf("%s, ", neigh->name);
                 }
                 //don't add comma if last neighbor
                 else{
-                    neigh = ol_next(neigh_iter);
+                    neigh = (char *) ol_next(neigh_iter);
                     printf("%s", neigh->name);
                 }
             } //end of traversing neighbors
