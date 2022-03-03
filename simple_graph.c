@@ -23,10 +23,26 @@ GraphNode * grh_create_node(char *name) {
     return node;
 }
 
+/// deletes given node including struct and its fields
 void grh_delete_node(GraphNode *node) {
+    free(node->name);
+    Iter *iterator = ol_iterator(node->neighbors);
+    while(ol_has_next(iterator)) {
+        free(ol_next(iterator));
+    }
+    free(ol_next(iterator));
+    ol_destroy(node->neighbors);
+    free(node);
 }
 
+/// deletes the given graph
 void grd_delete_graph(ObjectList *graph) {
+    Iter *iterator = ol_iterator(graph);
+    while(ol_has_next(iterator)) {
+        grh_delete_node(ol_next(iterator));
+    }
+    grh_delete_node(ol_next(iterator));
+
 }
 
 /// Given an objectlist, returns the node with the given name or NULL
