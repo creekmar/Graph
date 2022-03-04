@@ -69,25 +69,22 @@ void grh_print_graph(ObjectList *graph) {
         node = (GraphNode *) ol_next(iterator);
         printf("%s:", node->name);
         
+        size_t neigh_size = ol_get_size(node->neighbors);
         //if node has neighbors
-        if(ol_get_size(node->neighbors) > 0) {
+        if(neigh_size > 0) {
             //initialize variables to traverse neighbors
-            char *neigh;
+            char *neighbor;
             Iter *neigh_iter = ol_iterator(node->neighbors);
             printf(" "); //space after the colon
-
-            for(size_t j = 0; j < ol_get_size(node->neighbors); j++) {
+            //TODO comma at the end
+            for(size_t j = 0; j < (neigh_size-1); j++) {
                 //add comma at the end if there is another neighbor
-                if(ol_has_next(neigh_iter)) {
-                    neigh = (char *) ol_next(neigh_iter);
-                    printf("%s, ", neigh);
-                }
-                //don't add comma if last neighbor
-                else{
-                    neigh = (char *) ol_next(neigh_iter);
-                    printf("%s", neigh);
-                }
-            } //end of traversing neighbors
+                neighbor = ol_next(neigh_iter);
+                printf("%s, ", neighbor);
+            }
+            //print last neighbor
+            neighbor = ol_next(neigh_iter);
+            printf("%s", neighbor);
             free(neigh_iter);
         } //end of if have neighbors
         printf("\n");
@@ -136,7 +133,7 @@ void grh_load_file(ObjectList *graph, FILE *input) {
             strncpy(name, line, (size_t)(neighbors-strip_line));
             node = grh_find_node_by_name(graph, name);
             //if node not exist create one
-            if(node == NULL) { //TODO fix freeing node
+            if(node == NULL) { 
                 node = grh_create_node(name);
                 if(node != NULL) {
                     ol_insert(graph, node);
