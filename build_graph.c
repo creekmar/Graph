@@ -24,8 +24,10 @@ int main(void) {
 
     //printing graph
     printf("Finished reading graph data.\n");
-    printf("Graph: {name: neighbor names list}\n");
-    grh_print_graph(graph);
+    if(ol_get_size(graph) > 0) {
+        printf("Graph: {name: neighbor names list}\n");
+        grh_print_graph(graph);
+    }
     grh_delete_graph(graph);
     return EXIT_SUCCESS;
 }
