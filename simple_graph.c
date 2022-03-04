@@ -76,8 +76,7 @@ void grh_print_graph(ObjectList *graph) {
         //if node has neighbors
         if(node->neighbors != NULL) {
             //initialize variables to traverse neighbors
-            GraphNode *neigh;
-            neigh = (GraphNode *) malloc(sizeof(GraphNode));
+            char *neigh;
             Iter *neigh_iter = ol_iterator(node->neighbors);
             printf(" "); //space after the colon
 
@@ -86,16 +85,15 @@ void grh_print_graph(ObjectList *graph) {
                 //add comma at the end if there is another neighbor
                 if(ol_has_next(neigh_iter)) {
                     neigh = (char *) ol_next(neigh_iter);
-                    printf("%s, ", neigh->name);
+                    printf("%s, ", neigh);
                 }
                 //don't add comma if last neighbor
                 else{
                     neigh = (char *) ol_next(neigh_iter);
-                    printf("%s", neigh->name);
+                    printf("%s", neigh);
                 }
             } //end of traversing neighbors
             free(neigh_iter);
-            free(neigh);
         } //end of if have neighbors
         printf("\n");
     }//end of traversing graph
@@ -119,6 +117,7 @@ static int neighbor_exists(ObjectList *neighbors, char *name) {
     }
     free(iterator);
     return 0;
+
 }
 
 ///loads a input from a stream and puts it into the graph
@@ -131,7 +130,7 @@ void grh_load_file(ObjectList *graph, FILE *input) {
         strncpy(strip_line, line, strlen(line)-1);
         GraphNode *node = (GraphNode *) malloc(sizeof(GraphNode));
         char comma[2] = ",";
-        char *neighbors = strchr(strip_line, comma);
+        char *neighbors = strchr(strip_line, ',');
         //if it has neighbors
         if(neighbors != NULL) {
             char name[MAX_NAME] = "";
