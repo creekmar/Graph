@@ -9,6 +9,7 @@
 // // // // // // // // // // // // // // // // // // // // // // 
 
 #include "simple_graph.h"
+#include <string.h>
 
 /// A node representing an adjcency list with a varying size of neighbors
 GraphNode * grh_create_node(char *name) {
@@ -48,7 +49,7 @@ GraphNode * grh_find_node_by_name(ObjectList *graph, char *name) {
     GraphNode *node;
     node = (GraphNode *) malloc(sizeof(GraphNode));
     Iter *iterator = ol_iterator(graph);
-    for(int i = 0; i < size; i++) {
+    for(size_t i = 0; i < size; i++) {
         node = (GraphNode *)ol_next(iterator);
         if(strcmp(node->name, name) == 0) {
             free(iterator);
@@ -64,11 +65,11 @@ void grh_print_graph(ObjectList *graph) {
     //initialize variables to traverse graph
     size_t size = ol_get_size(graph);
     GraphNode *node;
-    node = (GraphNode *) malloc(sizeof(GrpahNode));
+    node = (GraphNode *) malloc(sizeof(GraphNode));
     Iter *iterator = ol_iterator(graph);
     
     //for each node in the graph
-    for(int i = 0; i < size; i++) {
+    for(size_t i = 0; i < size; i++) {
         node = (GraphNode *) ol_next(iterator);
         printf("%s:", node->name);
         
@@ -81,7 +82,7 @@ void grh_print_graph(ObjectList *graph) {
             printf(" "); //space after the colon
 
             //for each neighbor
-            for(int j = 0; j < ol_get_size(node->neighbors); j++) {
+            for(size_t j = 0; j < ol_get_size(node->neighbors); j++) {
                 //add comma at the end if there is another neighbor
                 if(ol_has_next(neigh_iter)) {
                     neigh = (char *) ol_next(neigh_iter);
@@ -106,9 +107,9 @@ void grh_print_graph(ObjectList *graph) {
 /// neighbor_exists determines whether a neighbor with a given name is in the list
 /// @param neighbors is a pointer to the list of neighbors
 /// @param name is the name of the neighbor
-static void neighbor_exists(ObjectList *neighbors, char *name) {
-    Iter *iterator = ol_iterator;
-    char tmp[MAX_NAME] = "";
+static int neighbor_exists(ObjectList *neighbors, char *name) {
+    Iter *iterator = ol_iterator(neighbors);
+    char *tmp;
     while(ol_has_next(iterator)) {
         tmp = (char *) ol_next(iterator);
         if(strcmp(name, tmp) == 0) {
@@ -125,7 +126,7 @@ void grh_load_file(ObjectList *graph, FILE *input) {
     char line[MAX_FILE_LINE_LENGTH];
     fgets(line, MAX_FILE_LINE_LENGTH, input);
     //There is actual input
-    if(strlen(line > 1)) {
+    if(strlen(line) > 1) {
         char strip_line[MAX_FILE_LINE_LENGTH] = "";
         strncpy(strip_line, line, strlen(line)-1);
         GraphNode *node = (GraphNode *) malloc(sizeof(GraphNode));
@@ -133,9 +134,9 @@ void grh_load_file(ObjectList *graph, FILE *input) {
         char *neighbors = strchr(strip_line, comma);
         //if it has neighbors
         if(neighbors != NULL) {
-            char *name[MAX_NAME] = "";
+            char name[MAX_NAME] = "";
             strncpy(name, line, (size_t)(neighbors-strip_line));
-            node = grh_find_node_by_name(name);
+            node = grh_find_node_by_name(graph, name);
             //if node not exist create one
             if(node == NULL) {
                 node = grh_create_node(name);
@@ -146,7 +147,7 @@ void grh_load_file(ObjectList *graph, FILE *input) {
             //add neighbors until empty
             while(token != NULL) {
                 GraphNode *tmp = (GraphNode *) malloc(sizeof(GraphNode));
-                tmp = grh_find_node_by_name(token);
+                tmp = grh_find_node_by_name(graph, token);
                 //if neighbor not in graph add new node
                 if(tmp == NULL) {
                     tmp = grh_create_node(token);
@@ -167,9 +168,9 @@ void grh_load_file(ObjectList *graph, FILE *input) {
         }
         //if no neighbors
         else {
-            node = grh_find_node_by_name(strip_line);
+            node = grh_find_node_by_name(graph, strip_line);
             if(node == NULL) {
-                node = grh_create_node(name);
+                node = grh_create_node(strip_line);
                 ol_insert(graph, node);
             }
         }
