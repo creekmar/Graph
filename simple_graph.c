@@ -24,13 +24,12 @@ GraphNode * grh_create_node(char *name) {
 
 /// deletes given node including struct and its fields
 void grh_delete_node(GraphNode *node) {
-    Iter *iterator = ol_iterator(node->neighbors);
-    while(ol_has_next(iterator)) {
-        free(ol_next(iterator));
+    Iter *neigh_iter = ol_iterator(node->neighbors);
+    while(ol_has_next(neigh_iter)) {
+        free(ol_next(neigh_iter));
     }
     ol_destroy(node->neighbors);
-    free(node);
-    free(iterator);
+   // free(node);
 }
 
 /// deletes the given graph
@@ -45,13 +44,12 @@ void grh_delete_graph(ObjectList *graph) {
 
 /// Given an objectlist, returns the node with the given name or NULL
 GraphNode * grh_find_node_by_name(ObjectList *graph, char *name) {
-    size_t size = ol_get_size(graph);
-    GraphNode *node;
-    node = (GraphNode *) malloc(sizeof(GraphNode));
     Iter *iterator = ol_iterator(graph);
-    for(size_t i = 0; i < size; i++) {
-        node = (GraphNode *)ol_next(iterator);
+    while(ol_has_next(iterator)) {
+        GraphNode *node = (GraphNode *)ol_next(iterator);
+        printf("ERROR: %s\t%s\n", node->name, name);
         if(strcmp(node->name, name) == 0) {
+            printf("ERROR: WHEEEEEEEEEEEEEEEEEEEE\n");
             free(iterator);
             return node;
         }
@@ -74,7 +72,7 @@ void grh_print_graph(ObjectList *graph) {
         printf("%s:", node->name);
         
         //if node has neighbors
-        if(node->neighbors != NULL) {
+        if(ol_get_size(node->neighbors) > 0) {
             //initialize variables to traverse neighbors
             char *neigh;
             Iter *neigh_iter = ol_iterator(node->neighbors);
@@ -99,13 +97,13 @@ void grh_print_graph(ObjectList *graph) {
     }//end of traversing graph
 
     free(iterator);
-    free(node);
+    //free(node);
 }
 
 /// neighbor_exists determines whether a neighbor with a given name is in the list
 /// @param neighbors is a pointer to the list of neighbors
 /// @param name is the name of the neighbor
-static int neighbor_exists(ObjectList *neighbors, char *name) {
+static int neighbor_exists(ObjectList *neighbors, const char *name) {
     Iter *iterator = ol_iterator(neighbors);
     char *tmp;
     while(ol_has_next(iterator)) {
@@ -122,7 +120,7 @@ static int neighbor_exists(ObjectList *neighbors, char *name) {
 
 ///loads a input from a stream and puts it into the graph
 void grh_load_file(ObjectList *graph, FILE *input) {
-    char line[MAX_FILE_LINE_LENGTH];
+    char line[MAX_FILE_LINE_LENGTH] = "";
     fgets(line, MAX_FILE_LINE_LENGTH, input);
     //There is actual input
     if(strlen(line) > 1) {
@@ -137,9 +135,19 @@ void grh_load_file(ObjectList *graph, FILE *input) {
             strncpy(name, line, (size_t)(neighbors-strip_line));
             node = grh_find_node_by_name(graph, name);
             //if node not exist create one
-            if(node == NULL) {
+            if(node == NULL) { //TODO fix freeing node
                 node = grh_create_node(name);
-                ol_insert(graph, node);
+                if(node != NULL) {
+                    ol_insert(graph, node);
+                }
+            }
+            else{
+              /*  printf("ERROR: %s\n", node->name);
+                Iter *n = ol_iterator(node->neighbors);
+                while(ol_has_next(n)){
+                    printf("%s",(char *) ol_next(n));
+                }
+                printf("\n\n");*/
             }
             neighbors ++; //make index point to after the comma
             char *token = strtok(neighbors, comma); //separating neighbors
@@ -150,18 +158,27 @@ void grh_load_file(ObjectList *graph, FILE *input) {
                 //if neighbor not in graph add new node
                 if(tmp == NULL) {
                     tmp = grh_create_node(token);
-                    ol_insert(tmp->neighbors, token);
-                    ol_insert(graph, tmp);
+                    if(tmp != NULL) {
+                        char *node_name = (char *) malloc(strlen(name) + 1);
+                        strcpy(node_name, name);
+                        ol_insert(tmp->neighbors, node_name);
+                        ol_insert(graph, tmp);
+                    }
                 }
                 //neighbor is in graph, insert the first name as a neighbor if need
                 else if(!neighbor_exists(tmp->neighbors, name)) {
-                    ol_insert(tmp->neighbors, name);
+                    char *node_name = (char *) malloc(strlen(name) + 1);
+                    strcpy(node_name, name);
+                    ol_insert(tmp->neighbors, node_name);
+                    free(tmp);
                 }
                 //insert neighbor for first name if not there
                 if(!neighbor_exists(node->neighbors, token)) {
-                    ol_insert(node->neighbors, token);
+                    char *neigh = (char *) malloc(strlen(token) + 1);
+                    strcpy(neigh, token);
+                    ol_insert(node->neighbors, neigh);
                 }
-                free(tmp);
+                //free(tmp);
                 token = strtok(NULL, comma);
             }    
         }
@@ -173,6 +190,6 @@ void grh_load_file(ObjectList *graph, FILE *input) {
                 ol_insert(graph, node);
             }
         }
-        free(node);
+       // free(node);
     } //there is no input so skip blank line
 }
