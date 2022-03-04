@@ -17,8 +17,6 @@ int main(void) {
     ObjectList *graph = ol_create();
     while(!feof(stdin)) {
         grh_load_file(graph, stdin);
-  //      grh_print_graph(graph);
-//        printf("ERROR\n");
     }
     printf("Finished reading graph data.\n");
     printf("Graph: {name: neighbor names list}\n");
